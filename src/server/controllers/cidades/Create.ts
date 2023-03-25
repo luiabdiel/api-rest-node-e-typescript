@@ -1,10 +1,10 @@
-import { Request, Response } from 'express';
+import { RequestHandler } from 'express';
 import { StatusCodes } from 'http-status-codes';
 import * as yup from 'yup';
 
 interface ICidade {
-  name: string
-  estate: string
+  name: string;
+  estate: string;
 }
 
 const bodyValidation: yup.ObjectSchema<ICidade> = yup.object().shape({
@@ -12,13 +12,10 @@ const bodyValidation: yup.ObjectSchema<ICidade> = yup.object().shape({
   estate: yup.string().required().min(2),
 });
 
-export const create = async (req: Request, res: Response) => {
-  const { name, estate } = req.body as ICidade;
-
-  let validatedData: ICidade | undefined = undefined;
-
+export const createBodyValidator: RequestHandler = async (req, res, next) => {
   try {
-    validatedData = await bodyValidation.validate({ name, estate }, { abortEarly: false});
+    await bodyValidation.validate(req.body, { abortEarly: false});
+    next();
   } catch (err) {
     const yupError = err as yup.ValidationError;
     const errors: Record<string, string> = {};
@@ -31,8 +28,12 @@ export const create = async (req: Request, res: Response) => {
 
     return res.status(StatusCodes.BAD_REQUEST).json({ errors }); 
   }
-  
-  console.log(validatedData);
+};
+
+export const create: RequestHandler = async (req, res) => {
+  const {name, estate} = req.body as ICidade;
+
+  console.log(name, estate);
   
   return res.send('create!');
 };
