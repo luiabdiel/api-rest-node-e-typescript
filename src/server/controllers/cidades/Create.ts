@@ -13,12 +13,12 @@ const bodyValidation: yup.ObjectSchema<ICidade> = yup.object().shape({
 });
 
 export const create = async (req: Request, res: Response) => {
-  const { name } = req.body as ICidade;
+  const { name, estate } = req.body as ICidade;
 
   let validatedData: ICidade | undefined = undefined;
 
   try {
-    validatedData = await bodyValidation.validate({ name }, { abortEarly: false});
+    validatedData = await bodyValidation.validate({ name, estate }, { abortEarly: false});
   } catch (err) {
     const yupError = err as yup.ValidationError;
     const errors: Record<string, string> = {};
