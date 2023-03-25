@@ -4,10 +4,12 @@ import * as yup from 'yup';
 
 interface ICidade {
   name: string
+  estate: string
 }
 
 const bodyValidation: yup.ObjectSchema<ICidade> = yup.object().shape({
   name: yup.string().required().min(3),
+  estate: yup.string().required().min(2),
 });
 
 export const create = async (req: Request, res: Response) => {
@@ -15,17 +17,19 @@ export const create = async (req: Request, res: Response) => {
 
   let validatedData: ICidade | undefined = undefined;
 
-
   try {
-    validatedData = await bodyValidation.validate({ name });
-  } catch (error) {
-    const yupError = error as yup.ValidationError;
+    validatedData = await bodyValidation.validate({ name }, { abortEarly: false});
+  } catch (err) {
+    const yupError = err as yup.ValidationError;
+    const errors: Record<string, string> = {};
 
-    return res.json({
-      errors: {
-        default: yupError.message,
-      }
-    }); 
+    yupError.inner.forEach((error) => {
+      if (!error.path) return; 
+
+      errors[error.path] = error.message;
+    });
+
+    return res.status(StatusCodes.BAD_REQUEST).json({ errors }); 
   }
   
   console.log(validatedData);
